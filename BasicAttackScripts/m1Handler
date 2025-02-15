@@ -1,0 +1,122 @@
+local rs = game:GetService("ReplicatedStorage")
+local ss = game:GetService("ServerStorage")
+local m1Event = rs.RemoteEvents.m1Event
+local vfxEvent = rs.RemoteEvents.VFX.vfxEvent
+local characterDataModule = require(ss.Assets.Generic.characterData)
+local slashesModule = require(rs.Assets.Generic.Modules.VFX.characterSlashes)
+local hitBoxModule = require(rs.Assets.Generic.Modules.Combat.m1s)
+
+local resetTimeLimit = 1.5
+local slowedTime = 0.8
+local swingCooldown = 0.6
+
+
+local function comboCooldown(char)
+	char:SetAttribute("m1Cooldown", true)
+	task.wait(1)
+	char:SetAttribute("m1StringCounter", 0)
+	char:SetAttribute("m1Cooldown", false)
+	char:SetAttribute("midM1Combo", false)
+end
+
+local function applySlow(char)
+	char:SetAttribute("slowed", true)
+	local slowTimer = tick()
+	repeat
+		task.wait()
+		if char:GetAttribute("slowed") == false then
+			--char:SetAttribute("CanAttack", true)
+			--char:SetAttribute("midM1Combo", false)
+			return
+		end
+	until tick() - slowTimer >= slowedTime
+	char:SetAttribute("slowed", false)
+	--char:SetAttribute("CanAttack", true)
+	--char:SetAttribute("midM1Combo", false)
+	return
+end
+
+local function startSwingCD(char, m1CounterAtActivation)
+	local swingTimer = tick()
+	repeat
+		task.wait()
+		if char:GetAttribute("CanAttack") == true or char:GetAttribute("m1StringCounter") ~= m1CounterAtActivation then
+			return
+		end
+	until tick() - swingTimer >= swingCooldown
+	--char:SetAttribute("slowed", false)
+	char:SetAttribute("CanAttack", true)
+	--char:SetAttribute("midM1Combo", false)
+	return
+end
+
+local function resetCombo(char, m1CounterAtActivation)
+	local resetTimer = tick()
+	repeat
+		task.wait()
+		if char:GetAttribute("midM1Combo") == false or char:GetAttribute("m1StringCounter") ~= m1CounterAtActivation then
+			print("NAH!!!")
+			return
+		end
+	until tick() - resetTimer >= resetTimeLimit
+	print("RESET!!!")
+	char:SetAttribute("m1StringCounter", 0)
+	char:SetAttribute("midM1Combo", false)
+	return
+end
+
+
+local function m1(player)
+	local char = player.Character
+	local currentM1 = char:GetAttribute("m1StringCounter")
+	
+	--if on m1Cooldown
+	if char:GetAttribute("m1Cooldown") == true then
+		--print("NO ON NO")
+		return
+	end
+	char:SetAttribute("CanAttack", false)
+	
+	if currentM1 == 0 then
+		char:SetAttribute("midM1Combo", true)
+	end
+	
+	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1)
+	
+	
+	local oldAnim = nil
+	--animation handling stuff
+	local charAnimator = char:FindFirstChild("Animator", true)
+	for i,v in pairs(charAnimator:GetPlayingAnimationTracks()) do
+		if v.Name == "currentM1" then
+			oldAnim = v
+		end
+	end
+	
+
+	local pmoonCharAnims = pmoonCharData.m1Anims 
+	char:SetAttribute("m1StringCounter", currentM1+1)
+	currentM1 = char:GetAttribute("m1StringCounter")
+	--local m1 = charAnimator:LoadAnimation(pmoonCharAnims[currentM1])
+	--m1.Name = "currentM1"
+	--m1:Play()
+	
+	if oldAnim ~= nil then oldAnim:Stop() end
+	
+	task.spawn(applySlow, char)
+	--char:SetAttribute("CanAttack", true)
+	--char:SetAttribute("midM1Combo", false)
+	
+	print(currentM1)
+	if currentM1 == 5 then
+		task.spawn(comboCooldown, char)
+		char:SetAttribute("CanAttack", true)
+	else 
+		print("GO INTO")
+		task.spawn(resetCombo, char, currentM1)
+		task.spawn(startSwingCD, char, currentM1)
+	end	
+end
+
+
+m1Event.OnServerEvent:Connect(m1)
