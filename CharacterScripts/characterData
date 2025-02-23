@@ -1,0 +1,53 @@
+local ss = game:GetService("ServerStorage")
+local rs = game:GetService("ReplicatedStorage")
+local module = {}
+
+--I, nicey13, shall comment my code for READIBILITY!!!!!!!!
+
+--[[nicey13 example for adding new character:
+
+module.[characterName+Data] = {
+	shirt = [roblox shirt id],
+	pants = [roblox pants id],
+	color = Color3.fromRGB(R, G, B), --skin color
+	accessories = {FOR EACH ACCESSORY: {ID, Scale, Rotation, Offset Position}}, <-- If Scale, Rotation, and/or Offset not needed, use nil so that other scripts dont break :B
+	attributes = {{[Make a table for each attribute, first element as name and second element as initial value]}}
+	bbGUIS = {ss.Assets.[insertNecessaryFolder].[insert Billboard GUI]:Clone()}
+	rightWeapon = {insert weapon model:Clone()}
+	rightWeaponCFrames = {Position, Rotation}
+	m1Anims = {Anim1, Anim2, Anim3, Anim4, Anim5}, should be a collection of the character's basic attack/m1 animations.
+}
+]]
+
+module.wRyoshuData = {
+	shirt = "http://www.roblox.com/asset/?id=14527169621",
+	pants = "http://www.roblox.com/asset/?id=14527174211",
+	color = Color3.fromRGB(255, 204, 153),
+	accessories = {{15081544353, Vector3.new(1.1,1,1.2), CFrame.Angles(0,math.rad(30),0), Vector3.new(0,0,-0.1)}, 
+				   {11330625077, nil,nil,nil}, 
+				   {14745311884,nil,nil,nil}, 
+				   {5944818089,nil,nil,nil}},
+	attributes = {{"Charge",0}},
+	bbGUIs = {ss.Assets.WCorp.chargeBillboard},
+	rightWeapon = {ss.Assets.WCorp.Ryoshu.Weapon, ss.Assets.WCorp.Ryoshu.WeaponT1, ss.Assets.WCorp.Ryoshu.WeaponT2},
+	rightWeaponCFrames = {CFrame.new(0,-0.5,0.2), CFrame.Angles(math.rad(30),math.rad(-90),0)},
+	m1Anims = {rs.Animations.M1s.wRyoshuBambi.bambiWm1p1, rs.Animations.M1s.wRyoshuBambi.bambiWm1p2, 
+			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p3, rs.Animations.M1s.wRyoshuBambi.bambiWm1p4, 
+			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p5},
+	slashMesh = rs.Assets.Mesh.RipSpaceSlash
+}
+
+module.kurokumoRyoshuData = {
+	shirt = "http://www.roblox.com/asset/?id=13325789235",
+	pants = "http://www.roblox.com/asset/?id=13368608258",
+	color = Color3.fromRGB(255, 204, 153),
+	accessories = {{11330625077,nil,nil,nil}, {14745311884,nil,nil,nil}, {5944818089,nil,nil,nil}},
+	attributes = {},
+	bbGUIs = {},
+	rightWeapon = nil,
+	rightWeaponCFrames = {},
+	m1Anims = {}
+}
+
+
+return module
