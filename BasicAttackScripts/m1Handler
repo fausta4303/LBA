@@ -81,7 +81,18 @@ local function m1(player)
 		char:SetAttribute("midM1Combo", true)
 	end
 	
-	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1)
+	local pmoonChar = player:GetAttribute("Character") .. "Data"
+	local pmoonCharData = characterDataModule[pmoonChar]
+	
+	--local slashTableTest = vfxModule.CreateEffectArguments("Slash", char:WaitForChild("HumanoidRootPart").CFrame, pmoonCharData.slashMesh)
+	--print(slashTableTest)
+	--vfxEvent:FireAllClients(slashTableTest) 
+	--task.spawn(function()
+	--	task.wait(0.1)
+	--	slashesModule.PlaySlashes(char, player:GetAttribute("Character"), currentM1+1)
+	--end)
+	slashesModule.PlaySlashes(char, player:GetAttribute("Character"), currentM1+1)
+	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
 	
 	
 	local oldAnim = nil
@@ -97,9 +108,9 @@ local function m1(player)
 	local pmoonCharAnims = pmoonCharData.m1Anims 
 	char:SetAttribute("m1StringCounter", currentM1+1)
 	currentM1 = char:GetAttribute("m1StringCounter")
-	--local m1 = charAnimator:LoadAnimation(pmoonCharAnims[currentM1])
-	--m1.Name = "currentM1"
-	--m1:Play()
+	local m1 = charAnimator:LoadAnimation(pmoonCharAnims[currentM1])
+	m1.Name = "currentM1"
+	m1:Play()
 	
 	if oldAnim ~= nil then oldAnim:Stop() end
 	
