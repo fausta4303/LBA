@@ -1,7 +1,9 @@
 local rayInfo = RaycastParams.new()
 local runservice = game:GetService("RunService")
+local rs = game:GetService("ReplicatedStorage")
 rayInfo.FilterType = Enum.RaycastFilterType.Exclude
 rayInfo.CollisionGroup = "RayCasts"
+local stunMod = require(rs.Assets.Generic.Modules.Combat.stuns)
 local module = {}
 
 function module.simulateHitbox(cframe,size)
@@ -40,11 +42,20 @@ function module.CheckAndDamage(char, chosenChar, hitboxSize, waitTime, hitboxTim
 		print("bro....")
 		--print(hits)
 		for _,v in hits do
-			if v.Parent:FindFirstChildOfClass("Humanoid") then
+			local vHumanoid = v.Parent:FindFirstChildOfClass("Humanoid")
+			if vHumanoid then
 				if table.find(ignoreList, v.Parent.Name) == nil then
 					print("HIT A DUDE " .. v.Parent.Name)
 					table.insert(ignoreList, v.Parent.Name)
-					v.Parent.Humanoid.Health -= 5
+					if vHumanoid.Parent:GetAttribute("Blocking") == true  and char:GetAttribute("m1StringCounter") ~= 5 then
+						break
+					elseif vHumanoid.Parent:GetAttribute("Blocking") == true  and char:GetAttribute("m1StringCounter") == 5 then
+						v.Parent.Humanoid.Health -= 5
+						vHumanoid.Parent:SetAttribute("Blocking", false)
+						stunMod.blockBreakStun(vHumanoid)
+					else 
+						v.Parent.Humanoid.Health -= 5
+					end
 				end
 			end
 		end

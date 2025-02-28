@@ -12,6 +12,7 @@ local charAnimator = char:FindFirstChild("Animator", true)
 local mouseLockController = player.PlayerScripts:WaitForChild("PlayerModule"):WaitForChild("CameraModule"):WaitForChild("MouseLockController")
 local event = rs:FindFirstChild("airJumpEvent", true)
 local m1Event = rs.RemoteEvents.m1Event
+local blockEvent = rs.RemoteEvents.blockEvent
 local jumpingAnim = charAnimator:LoadAnimation(rs.Animations.airJump)
 
 --here be the dash variables
@@ -152,8 +153,8 @@ local function sprintHandling()
 		task.wait()
 		local moveDir = Vector3.new(hum.MoveDirection.X, 0, hum.MoveDirection.Z)
 		if moveDir.Magnitude > 0 then
-			--If we're currently not attacking, sprint as normal
-			if char:GetAttribute("CanAttack") == true then
+			--If we're currently not attacking or blocking, sprint as normal
+			if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
 			
 				
 				if hum.WalkSpeed ~= runningSpeed then hum.WalkSpeed = runningSpeed end
@@ -231,6 +232,10 @@ inputService.InputBegan:Connect(function(input, GPE)
 			end
 		end
 		
+	--block logic
+	elseif input.KeyCode == Enum.KeyCode.F then
+		print("LOCALSCRIPT BLOCK")
+		blockEvent:FireServer(char)
 		--[[if areKeysPressed == false then
 			initiateDash("lookVector",-1)
 			--char.HumanoidRootPart.BodyVelocity.Velocity = char.HumanoidRootPart.CFrame.lookVector * -200
@@ -242,7 +247,7 @@ end)
 
 --Left mouse button
 player:GetMouse().Button1Down:Connect(function()
-	if char:GetAttribute("CanAttack") == true then
+	if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
 		if isMoving == false then
 			if hum.AutoRotate == false then hum.AutoRotate = true end
 		end
