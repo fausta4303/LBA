@@ -13,7 +13,9 @@ local mouseLockController = player.PlayerScripts:WaitForChild("PlayerModule"):Wa
 local event = rs:FindFirstChild("airJumpEvent", true)
 local m1Event = rs.RemoteEvents.m1Event
 local blockEvent = rs.RemoteEvents.blockEvent
+local unblockEvent = rs.RemoteEvents.unblockEvent
 local jumpingAnim = charAnimator:LoadAnimation(rs.Animations.airJump)
+local blockBuffering = false
 
 --here be the dash variables
 local dashDirections = {
@@ -58,7 +60,9 @@ local function onStateChange(oldState, newState)
 	end
 end
 
-
+--local function isKeyHeld(keyCode)
+--	return keyHeld[keyCode] or false
+--end
 
 local function initiateDash(vectorType, posOrNeg, posOrNeg2ndVector)
 	if dashDebounce == true then
@@ -200,46 +204,64 @@ end
 
 --Input Detection begins here
 inputService.InputBegan:Connect(function(input, GPE)
-	if isMoving == false and (input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D or input.KeyCode == Enum.KeyCode.S) then
-		isMoving = true
-		sprintHandling()
-	end
-		
-	if input.KeyCode == Enum.KeyCode.Space and char:GetAttribute("CanAttack") == true  and char:GetAttribute("slowed") == false then
-		if hum.FloorMaterial == Enum.Material.Air and char:GetAttribute("JumpCounter") == 1 then
-			hum:ChangeState(Enum.HumanoidStateType.Jumping)
-			jumpingAnim:Play()
-			jumpingAnim.Name = "airJump"
-			event:FireServer("remove")
+	if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+		if isMoving == false and (input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D or input.KeyCode == Enum.KeyCode.S) then
+			isMoving = true
+			sprintHandling()
 		end
-		
-	elseif input.KeyCode == Enum.KeyCode.Q then
-		--local areKeysPressed = false
-		for i in dashDirections do
-			if #dashDirections[i] > 4 then
-				if inputService:IsKeyDown(dashDirections[i][1]) and inputService:IsKeyDown(dashDirections[i][5]) and not inputService:IsKeyDown(dashDirections[i][6]) then
-					initiateDash(dashDirections[i][2], dashDirections[i][3], dashDirections[i][4])
-					--areKeysPressed = true
-					break
-				end
-			else
-				if inputService:IsKeyDown(dashDirections[i][1]) and not inputService:IsKeyDown(dashDirections[i][4]) then
-					print(dashDirections[i][1])
-					initiateDash(dashDirections[i][2], dashDirections[i][3], 0)
-					--areKeysPressed = true
-					break
+			
+		if input.KeyCode == Enum.KeyCode.Space and char:GetAttribute("CanAttack") == true  and char:GetAttribute("slowed") == false then
+			if hum.FloorMaterial == Enum.Material.Air and char:GetAttribute("JumpCounter") == 1 then
+				hum:ChangeState(Enum.HumanoidStateType.Jumping)
+				jumpingAnim:Play()
+				jumpingAnim.Name = "airJump"
+				event:FireServer("remove")
+			end
+			
+		elseif input.KeyCode == Enum.KeyCode.Q then
+			--local areKeysPressed = false
+			for i in dashDirections do
+				if #dashDirections[i] > 4 then
+					if inputService:IsKeyDown(dashDirections[i][1]) and inputService:IsKeyDown(dashDirections[i][5]) and not inputService:IsKeyDown(dashDirections[i][6]) then
+						initiateDash(dashDirections[i][2], dashDirections[i][3], dashDirections[i][4])
+						--areKeysPressed = true
+						break
+					end
+				else
+					if inputService:IsKeyDown(dashDirections[i][1]) and not inputService:IsKeyDown(dashDirections[i][4]) then
+						print(dashDirections[i][1])
+						initiateDash(dashDirections[i][2], dashDirections[i][3], 0)
+						--areKeysPressed = true
+						break
+					end
 				end
 			end
 		end
-		
+	end
+	
 	--block logic
-	elseif input.KeyCode == Enum.KeyCode.F then
-		print("LOCALSCRIPT BLOCK")
-		blockEvent:FireServer(char)
+	if input.KeyCode == Enum.KeyCode.F then
+			print("LOCALSCRIPT BLOCK")
+			--blockEvent:FireServer(char)
+			blockBuffering = true
+			--task.spawn(function()
+				--while(blockBuffering) do
+					--if char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil then
+						--blockBuffering = true
+					--end
+	end
+	
+	
+		--end)
 		--[[if areKeysPressed == false then
 			initiateDash("lookVector",-1)
 			--char.HumanoidRootPart.BodyVelocity.Velocity = char.HumanoidRootPart.CFrame.lookVector * -200
 		end]]
+end)
+
+inputService.InputEnded:Connect(function(input, GPE)
+	if input.KeyCode == Enum.KeyCode.F then
+		blockBuffering = false
 	end
 end)
 
@@ -247,11 +269,38 @@ end)
 
 --Left mouse button
 player:GetMouse().Button1Down:Connect(function()
-	if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
-		if isMoving == false then
-			if hum.AutoRotate == false then hum.AutoRotate = true end
+	if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+		if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
+			if isMoving == false then
+				if hum.AutoRotate == false then hum.AutoRotate = true end
+			end
+			m1Event:FireServer()
 		end
-		m1Event:FireServer()
+	end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	
+	--BLOCK HANDLING
+	if blockBuffering then
+		print("F is currently being held!")
+		if char:GetAttribute("Blocking") ~= true and char:GetAttribute("Stunned") ~= true then
+			blockEvent:FireServer(char)
+		end
+	elseif not blockBuffering then
+		if char:GetAttribute("Blocking") == true then
+			unblockEvent:FireServer(char)
+		end
+	end
+	
+	--STUN HANDLING
+	if char:GetAttribute("Stunned") == true then
+		hum.WalkSpeed = 2
+		hum.JumpHeight = 0
+	elseif char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+		--hum.WalkSpeed = 16
+		--hum.JumpPower = 50
+		hum.JumpHeight = 7.2
 	end
 end)
 
