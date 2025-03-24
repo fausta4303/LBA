@@ -16,6 +16,7 @@ module.[characterName+Data] = {
 	rightWeapon = {insert weapon model:Clone()}
 	rightWeaponCFrames = {Position, Rotation}
 	m1Anims = {Anim1, Anim2, Anim3, Anim4, Anim5}, should be a collection of the character's basic attack/m1 animations.
+	blockAnim = Anim, should just be the block animation for the character
 }
 ]]
 
@@ -34,7 +35,8 @@ module.wRyoshuData = {
 	m1Anims = {rs.Animations.M1s.wRyoshuBambi.bambiWm1p1, rs.Animations.M1s.wRyoshuBambi.bambiWm1p2, 
 			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p3, rs.Animations.M1s.wRyoshuBambi.bambiWm1p4, 
 			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p5},
-	slashMesh = rs.Assets.Mesh.RipSpaceSlash
+	slashMesh = rs.Assets.Mesh.RipSpaceSlash,
+	blockAnim = rs.Animations.Blocks.testBlock
 }
 
 module.kurokumoRyoshuData = {
@@ -47,6 +49,24 @@ module.kurokumoRyoshuData = {
 	rightWeapon = nil,
 	rightWeaponCFrames = {},
 	m1Anims = {}
+}
+
+module.baseHeathcliffData = {
+	shirt = "http://www.roblox.com/asset/?id=17416292944",
+	pants = "http://www.roblox.com/asset/?id=12710749373",
+	color = Color3.fromRGB(140, 109, 101),
+	accessories = { 
+		{18812985084, nil,nil,nil}, --FACE
+		{18997819320,nil,nil,nil}}, --HAIR
+	attributes = {},
+	bbGUIs = {},
+	rightWeapon = {ss.Assets.BaseSinners.Heathcliff.Weapon},
+	rightWeaponCFrames = {CFrame.new(0,-0.4,-1.5), CFrame.Angles(0, math.rad(35), 0) * CFrame.Angles(math.rad(90), 0, 0)}, -- FOR ROTATIONS, USE A DEG TO RAD CALC
+	m1Anims = {rs.Animations.M1s.baseHeathcliff.m1p1, rs.Animations.M1s.baseHeathcliff.m1p1, 
+		rs.Animations.M1s.baseHeathcliff.m1p1, rs.Animations.M1s.baseHeathcliff.m1p1, 
+		rs.Animations.M1s.baseHeathcliff.m1p1},
+	slashMesh = rs.Assets.Mesh.RipSpaceSlash,
+	blockAnim = rs.Animations.Blocks.testBlock
 }
 
 
