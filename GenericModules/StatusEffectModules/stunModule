@@ -1,0 +1,13 @@
+local stun = {}
+local speedMod = require(game:GetService("ReplicatedStorage").Assets.Generic.Modules.speedHandler)
+
+function stun.Add(target, params)
+	print("SLOW DOWN GRAHHH")
+	speedMod.addModifier("Stun", -8, 1, target)
+end
+
+function stun.Remove(target)
+	speedMod.removeModifier("Stun", target)
+end
+
+return stun
