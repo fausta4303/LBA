@@ -15,7 +15,19 @@ local m1Event = rs.RemoteEvents.m1Event
 local blockEvent = rs.RemoteEvents.blockEvent
 local unblockEvent = rs.RemoteEvents.unblockEvent
 local jumpingAnim = charAnimator:LoadAnimation(rs.Animations.airJump)
+
+local actionsModule = require(rs.Assets.Generic.Modules.actionsModule)
+local speedMod = require(rs.Assets.Generic.Modules.speedHandler)
+
+--BUFFER VARIABLES GRAHHHHH
 local blockBuffering = false
+local movementBuffer = false
+local bufferMoveKeys = {
+	{'W', false},
+	{'A', false},
+	{'S', false},
+	{'D', false}
+}
 
 --here be the dash variables
 local dashDirections = {
@@ -158,10 +170,11 @@ local function sprintHandling()
 		local moveDir = Vector3.new(hum.MoveDirection.X, 0, hum.MoveDirection.Z)
 		if moveDir.Magnitude > 0 then
 			--If we're currently not attacking or blocking, sprint as normal
-			if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
+			if actionsModule.check("run", char) then
 			
 				
-				if hum.WalkSpeed ~= runningSpeed then hum.WalkSpeed = runningSpeed end
+				--if hum.WalkSpeed ~= runningSpeed then hum.WalkSpeed = runningSpeed end
+				speedMod.addModifier("Run", 8, 1, char)
 				
 				if char:GetAttribute("midM1Combo") == false then
 					if hum.AutoRotate == true then hum.AutoRotate = false end
@@ -179,7 +192,8 @@ local function sprintHandling()
 			else
 				
 				
-				if hum.WalkSpeed ~= slowSpeed then hum.WalkSpeed = slowSpeed end
+				--if hum.WalkSpeed ~= slowSpeed then hum.WalkSpeed = slowSpeed end
+				speedMod.removeModifier("Run", char)
 				if hum.AutoRotate == false then hum.AutoRotate = true end
 				if runningAnim.IsPlaying then runningAnim:Stop() end
 				if rotationTween ~= nil then rotationTween:Cancel() end
@@ -188,6 +202,7 @@ local function sprintHandling()
 			--If we're not moving/idle
 		else 
 			isMoving = false
+			if hum.AutoRotate == false then hum.AutoRotate = true end
 		end
 	until isMoving == false
 	
@@ -204,13 +219,16 @@ end
 
 --Input Detection begins here
 inputService.InputBegan:Connect(function(input, GPE)
-	if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
-		if isMoving == false and (input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D or input.KeyCode == Enum.KeyCode.S) then
+	--if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+	--if actionsModule.check("run", char) then
+		print("IT WORKS YAYYYYYYYY")
+		if actionsModule.check("run", char) and isMoving == false and (input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D or input.KeyCode == Enum.KeyCode.S) then
 			isMoving = true
 			sprintHandling()
 		end
 			
-		if input.KeyCode == Enum.KeyCode.Space and char:GetAttribute("CanAttack") == true  and char:GetAttribute("slowed") == false then
+		--if input.KeyCode == Enum.KeyCode.Space and char:GetAttribute("CanAttack") == true  and char:GetAttribute("slowed") == false then
+		if input.KeyCode == Enum.KeyCode.Space and actionsModule.check("doubleJump", char) then 
 			if hum.FloorMaterial == Enum.Material.Air and char:GetAttribute("JumpCounter") == 1 then
 				hum:ChangeState(Enum.HumanoidStateType.Jumping)
 				jumpingAnim:Play()
@@ -218,7 +236,7 @@ inputService.InputBegan:Connect(function(input, GPE)
 				event:FireServer("remove")
 			end
 			
-		elseif input.KeyCode == Enum.KeyCode.Q then
+		elseif input.KeyCode == Enum.KeyCode.Q and actionsModule.check("dash", char) then
 			--local areKeysPressed = false
 			for i in dashDirections do
 				if #dashDirections[i] > 4 then
@@ -237,7 +255,7 @@ inputService.InputBegan:Connect(function(input, GPE)
 				end
 			end
 		end
-	end
+	
 	
 	--block logic
 	if input.KeyCode == Enum.KeyCode.F then
@@ -269,13 +287,14 @@ end)
 
 --Left mouse button
 player:GetMouse().Button1Down:Connect(function()
-	if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
-		if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
+	if actionsModule.check("attack", char) then
+	--if char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+		--if char:GetAttribute("CanAttack") == true and (char:GetAttribute("Blocking") == false or char:GetAttribute("Blocking") == nil) then
 			if isMoving == false then
 				if hum.AutoRotate == false then hum.AutoRotate = true end
 			end
 			m1Event:FireServer()
-		end
+		--end
 	end
 end)
 
@@ -284,7 +303,8 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	--BLOCK HANDLING
 	if blockBuffering then
 		print("F is currently being held!")
-		if char:GetAttribute("Blocking") ~= true and char:GetAttribute("Stunned") ~= true then
+		--if char:GetAttribute("Blocking") ~= true and char:GetAttribute("Stunned") ~= true then
+		if actionsModule.check("block", char) then
 			blockEvent:FireServer(char)
 		end
 	elseif not blockBuffering then
@@ -293,15 +313,17 @@ game:GetService("RunService").RenderStepped:Connect(function()
 		end
 	end
 	
+	
+	
 	--STUN HANDLING
-	if char:GetAttribute("Stunned") == true then
-		hum.WalkSpeed = 2
-		hum.JumpHeight = 0
-	elseif char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
+	--if char:GetAttribute("Stunned") == true then
+		--hum.WalkSpeed = 2
+		--hum.JumpHeight = 0
+	--elseif char:GetAttribute("Stunned") == false or char:GetAttribute("Stunned") == nil then
 		--hum.WalkSpeed = 16
 		--hum.JumpPower = 50
-		hum.JumpHeight = 7.2
-	end
+		--hum.JumpHeight = 7.2
+	--end
 end)
 
 hum.StateChanged:Connect(onStateChange)
