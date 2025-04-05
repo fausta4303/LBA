@@ -5,6 +5,8 @@ local vfxEvent = rs.RemoteEvents.VFX.vfxEvent
 local characterDataModule = require(ss.Assets.Generic.characterData)
 local slashesModule = require(rs.Assets.Generic.Modules.VFX.characterSlashes)
 local hitBoxModule = require(rs.Assets.Generic.Modules.Combat.m1s)
+local actionsMod = require(rs.Assets.Generic.Modules.actionsModule)
+local animsMod = require(rs.Assets.Generic.Modules.animationHandler)
 
 local resetTimeLimit = 1.5
 local slowedTime = 0.8
@@ -40,12 +42,13 @@ local function startSwingCD(char, m1CounterAtActivation)
 	local swingTimer = tick()
 	repeat
 		task.wait()
-		if char:GetAttribute("CanAttack") == true or char:GetAttribute("m1StringCounter") ~= m1CounterAtActivation then
+		if char:GetAttribute("Attacking") == false or char:GetAttribute("m1StringCounter") ~= m1CounterAtActivation then
 			return
 		end
 	until tick() - swingTimer >= swingCooldown
 	--char:SetAttribute("slowed", false)
-	char:SetAttribute("CanAttack", true)
+	--char:SetAttribute("CanAttack", true)
+	char:SetAttribute("Attacking", false)
 	--char:SetAttribute("midM1Combo", false)
 	return
 end
@@ -75,7 +78,8 @@ local function m1(player)
 		--print("NO ON NO")
 		return
 	end
-	char:SetAttribute("CanAttack", false)
+	--char:SetAttribute("CanAttack", false)
+	char:SetAttribute("Attacking", true)
 	
 	if currentM1 == 0 then
 		char:SetAttribute("midM1Combo", true)
@@ -84,36 +88,17 @@ local function m1(player)
 	local pmoonChar = player:GetAttribute("Character") .. "Data"
 	local pmoonCharData = characterDataModule[pmoonChar]
 	
-	--local slashTableTest = vfxModule.CreateEffectArguments("Slash", char:WaitForChild("HumanoidRootPart").CFrame, pmoonCharData.slashMesh)
-	--print(slashTableTest)
-	--vfxEvent:FireAllClients(slashTableTest) 
-	--task.spawn(function()
-	--	task.wait(0.1)
-	--	slashesModule.PlaySlashes(char, player:GetAttribute("Character"), currentM1+1)
-	--end)
 	slashesModule.PlaySlashes(char, player:GetAttribute("Character"), currentM1+1)
+	--TO DO: Make it so hitbox comes out later in an anim and activates via "launchAttack"
 	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
 	
-	
-	local oldAnim = nil
-	--animation handling stuff
-	local charAnimator = char:FindFirstChild("Animator", true)
-	for i,v in pairs(charAnimator:GetPlayingAnimationTracks()) do
-		if v.Name == "currentM1" then
-			oldAnim = v
-		end
-	end
 	
 
 	local pmoonCharAnims = pmoonCharData.m1Anims 
 	char:SetAttribute("m1StringCounter", currentM1+1)
 	currentM1 = char:GetAttribute("m1StringCounter")
-	local m1 = charAnimator:LoadAnimation(pmoonCharAnims[currentM1])
-	m1.Name = "currentM1"
-	m1:Play()
-	
-	if oldAnim ~= nil then oldAnim:Stop() end
-	
+	animsMod.playAnim(char, pmoonCharAnims[currentM1], "currentM1")
+
 	task.spawn(applySlow, char)
 	--char:SetAttribute("CanAttack", true)
 	--char:SetAttribute("midM1Combo", false)
@@ -121,7 +106,7 @@ local function m1(player)
 	print(currentM1)
 	if currentM1 == 5 then
 		task.spawn(comboCooldown, char)
-		char:SetAttribute("CanAttack", true)
+		char:SetAttribute("Attacking", false)
 	else 
 		print("GO INTO")
 		task.spawn(resetCombo, char, currentM1)
