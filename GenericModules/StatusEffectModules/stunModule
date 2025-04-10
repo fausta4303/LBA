@@ -1,13 +1,28 @@
 local stun = {}
-local speedMod = require(game:GetService("ReplicatedStorage").Assets.Generic.Modules.speedHandler)
+local rs = game:GetService("ReplicatedStorage")
+local speedMod = require(rs.Assets.Generic.Modules.speedHandler)
+local animMod = require(rs.Assets.Generic.Modules.animationHandler)
+local stun1 = rs.Animations.Stuns.stun1
+local stun2 = rs.Animations.Stuns.stun2
+local stagger = rs.Animations.Stuns.BlockStagger
+local stuns = {stun1, stun2}
 
 function stun.Add(target, params)
 	print("SLOW DOWN GRAHHH")
-	speedMod.addModifier("Stun", -8, 1, target)
+	animMod.endAllAnims(target)
+	
+	if params.dur ~= 1 then 
+		animMod.playAnim(target, stagger, "stun")
+	else
+		local chosenAnim = math.random(1, #stuns)
+		animMod.playAnim(target, stuns[chosenAnim], "stun")
+	end
+	speedMod.addModifier("Stun", -8, params.dur, target)
 end
 
 function stun.Remove(target)
 	speedMod.removeModifier("Stun", target)
+	animMod.endAnim(target, "stun")
 end
 
 return stun
