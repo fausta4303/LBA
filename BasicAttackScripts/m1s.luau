@@ -3,6 +3,8 @@ local runservice = game:GetService("RunService")
 local rs = game:GetService("ReplicatedStorage")
 local ss = game:GetService("ServerStorage")
 local statusesMod = require(ss.Assets.Generic.statusModule)
+local knockbackMod = require(rs.Assets.Generic.Modules.Combat.knockBackModule)
+local soundMod = require(ss.Assets.Generic.sfxModule)
 
 rayInfo.FilterType = Enum.RaycastFilterType.Exclude
 rayInfo.CollisionGroup = "RayCasts"
@@ -46,7 +48,25 @@ function module.hitBehind(char, enemyChar)
 	local radians = enemyForward:Dot(charHumanoidRoot.Position - enemyHumanoidRoot.Position)
 	local deg = math.deg(radians)
 	
-	return deg > 0
+	return deg < 0
+end
+
+--target == CHAR to Damage humanoid of 
+--currentM1Counter == the current m1 in the cycle of attacker
+function module.normalHit(attackerChar, targetChar, targetHum, currentM1Counter, dmg)
+	if(attackerChar:GetAttribute("Stun")) then return end
+	targetHum:TakeDamage(dmg)
+	statusesMod.Add(targetChar, "Stun", {dur = 1.0})
+	if currentM1Counter == 5 then 
+		knockbackMod.apply(attackerChar, targetChar) 
+	end
+end
+
+function module.blockBreak(attackerChar, targetChar, targetHum, currentM1Counter, dmg)
+	if(attackerChar:GetAttribute("Stun")) then return end
+	targetHum:TakeDamage(dmg)
+	targetChar:SetAttribute("Blocking", false)
+	statusesMod.Add(targetChar, "Stun", {dur = 5.0})
 end
 
 
@@ -57,6 +77,7 @@ function module.CheckAndDamage(char, chosenChar, hitboxSize, waitTime, hitboxTim
 	local hitboxStart = tick()
 	local connection
 	connection = runservice.Heartbeat:Connect(function()
+		if(char:GetAttribute("Stun")) then connection:Disconnect() end
 		local position = char.HumanoidRootPart.CFrame + (char.HumanoidRootPart.CFrame.LookVector * 5)
 		--position = CFrame.new(position)
 		local hits = workspace:GetPartBoundsInBox(position, hitboxSize)
@@ -69,20 +90,23 @@ function module.CheckAndDamage(char, chosenChar, hitboxSize, waitTime, hitboxTim
 				if table.find(ignoreList, v.Parent.Name) == nil then
 					print("HIT A DUDE " .. v.Parent.Name)
 					table.insert(ignoreList, v.Parent.Name)
-					if vHumanoid.Parent:GetAttribute("Blocking") == true  and module.hitBehind(char, vHumanoid.Parent) and char:GetAttribute("m1StringCounter") ~= 5 then
-						--print(module.hitBehind(char, vHumanoid.Parent))
-						break
-					elseif vHumanoid.Parent:GetAttribute("Blocking") == true  and char:GetAttribute("m1StringCounter") == 5 then
-						v.Parent.Humanoid.Health -= 5
-						vHumanoid.Parent:SetAttribute("Blocking", false)
-						--stunMod.blockBreakStun(vHumanoid)
-					else 
-						v.Parent.Humanoid.Health -= 5
-						--if vHumanoid.Parent:GetAttribute("Stunned") ~= true then
-							--vHumanoid.Parent:SetAttribute("Stunned", true)
-						--end
-						--statusMod:Add("Stun", vHumanoid.Parent, 1, 2.0)
-						statusesMod.Add(v.Parent, "Stun", {dur = 1.0})
+				
+					local currM1 = char:GetAttribute("m1StringCounter")
+					
+					if module.hitBehind(char, vHumanoid.Parent) or not vHumanoid.Parent:GetAttribute("Blocking") then
+
+						print(module.hitBehind(char, vHumanoid.Parent))
+						print(vHumanoid.Parent:GetAttribute("Blocking"))
+						module.normalHit(char, vHumanoid.Parent, vHumanoid, currM1, 5)
+						
+					elseif vHumanoid.Parent:GetAttribute("Blocking") then
+						if currM1 == 5 then
+							print("BREAK BLOCK HERE")
+							module.blockBreak(char, vHumanoid.Parent, vHumanoid, currM1, 5)
+						else
+							print("DONT DMG")
+							soundMod.playSound(vHumanoid.Parent, 'block')
+						end
 					end
 				end
 			end
@@ -95,3 +119,4 @@ function module.CheckAndDamage(char, chosenChar, hitboxSize, waitTime, hitboxTim
 end
 
 return module
+	
