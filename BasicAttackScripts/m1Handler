@@ -7,10 +7,12 @@ local slashesModule = require(rs.Assets.Generic.Modules.VFX.characterSlashes)
 local hitBoxModule = require(rs.Assets.Generic.Modules.Combat.m1s)
 local actionsMod = require(rs.Assets.Generic.Modules.actionsModule)
 local animsMod = require(rs.Assets.Generic.Modules.animationHandler)
+local runservice = game:GetService("RunService")
 
 local resetTimeLimit = 1.5
 local slowedTime = 0.8
-local swingCooldown = 0.6
+--local swingCooldown = 0.6
+local swingCooldown = 15/60 --(20 frames into anim, but 11 frames played up to this point)
 
 
 local function comboCooldown(char)
@@ -68,6 +70,70 @@ local function resetCombo(char, m1CounterAtActivation)
 	return
 end
 
+local function windUp(char, currentM1, anim, animName)
+	local m1Time = 5/60 --hitbox should get thrown out at 11th frame
+	local m1Start = tick()
+	print("START WINDING UP YEAHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+	repeat
+		print(tick() - m1Start)
+		task.wait()
+		if char:GetAttribute("Stun") then
+			print("NAH!!!")
+			char:SetAttribute("Attacking", false)
+			task.spawn(resetCombo, char, currentM1)
+			task.spawn(startSwingCD, char, currentM1)
+			return
+		end
+	until tick() - m1Start >= m1Time
+	
+	print("NOW DO THIS GRAHHHHHHHHHHHHHH")
+	hitBoxModule.CheckAndDamage(char, char.Parent:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+
+	task.spawn(applySlow, char)
+	--char:SetAttribute("CanAttack", true)
+	--char:SetAttribute("midM1Combo", false)
+
+	print(currentM1)
+	if currentM1 == 5 then
+		task.spawn(comboCooldown, char)
+		char:SetAttribute("Attacking", false)
+	else 
+		print("GO INTO")
+		task.spawn(resetCombo, char, currentM1)
+		task.spawn(startSwingCD, char, currentM1)
+	end	
+	
+	--[[
+	runservice:BindToRenderStep("m1", 1, function()
+		print("INFINITY")
+		if(char:GetAttribute("Stunned")) then
+			print("DIEEEEEEEEEEE")
+			runservice:UnbindFromRenderStep("m1")
+			animsMod.endAnim(char, anim, animName)
+		end
+		if tick() - m1Start >= m1Time then
+			hitBoxModule.CheckAndDamage(char, char.Parent:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+
+			task.spawn(applySlow, char)
+			--char:SetAttribute("CanAttack", true)
+			--char:SetAttribute("midM1Combo", false)
+
+			print(currentM1)
+			if currentM1 == 5 then
+				task.spawn(comboCooldown, char)
+				char:SetAttribute("Attacking", false)
+			else 
+				print("GO INTO")
+				task.spawn(resetCombo, char, currentM1)
+				task.spawn(startSwingCD, char, currentM1)
+			end	
+			runservice:UnbindFromRenderStep("m1")
+		end
+	end)
+	]]--
+
+end
+
 
 local function m1(player)
 	local char = player.Character
@@ -90,15 +156,20 @@ local function m1(player)
 	
 	slashesModule.PlaySlashes(char, player:GetAttribute("Character"), currentM1+1)
 	--TO DO: Make it so hitbox comes out later in an anim and activates via "launchAttack"
-	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+	--hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
 	
 	
-
+	
 	local pmoonCharAnims = pmoonCharData.m1Anims 
 	char:SetAttribute("m1StringCounter", currentM1+1)
 	currentM1 = char:GetAttribute("m1StringCounter")
 	animsMod.playAnim(char, pmoonCharAnims[currentM1], "currentM1")
-
+	
+	windUp(char, currentM1, pmoonCharAnims[currentM1], "currentM1")
+	
+	--[[
+	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+	
 	task.spawn(applySlow, char)
 	--char:SetAttribute("CanAttack", true)
 	--char:SetAttribute("midM1Combo", false)
@@ -112,6 +183,7 @@ local function m1(player)
 		task.spawn(resetCombo, char, currentM1)
 		task.spawn(startSwingCD, char, currentM1)
 	end	
+	]]--
 end
 
 
