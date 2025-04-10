@@ -34,7 +34,7 @@ function animHandler.playAnim(char, anim, name)
 
 end
 
-function animHandler.endAnim(char, anim, name)
+function animHandler.endAnim(char, name)
 	
 	local animToStop = nil
 	local charAnimator = char:FindFirstChild("Animator", true)
@@ -45,6 +45,13 @@ function animHandler.endAnim(char, anim, name)
 	end
 
 	if animToStop ~= nil then animToStop:Stop() end
+end
+
+function animHandler.endAllAnims(char)
+	local charAnimator = char:FindFirstChild("Animator", true)
+	for i,v in pairs(charAnimator:GetPlayingAnimationTracks()) do
+		v:Stop()
+	end
 end
 
 return animHandler
