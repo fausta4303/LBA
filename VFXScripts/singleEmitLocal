@@ -1,0 +1,54 @@
+local ss = game:GetService("ServerStorage")
+local rs = game:GetService("ReplicatedStorage")
+local emitEvent = rs.RemoteEvents.VFX.singleEmit
+
+
+local function applyParticles(vfx, bodyPart)
+	print("WE GOT HERE!")
+	--if it's a real particle
+	if vfx:IsA("ParticleEmitter") then
+			print("TEMPORARY")
+			local emitCount = vfx:GetAttribute("EmitCount")
+			local emitDelay = vfx:GetAttribute("EmitDelay")
+			print()
+			task.spawn(function()
+				task.wait(emitDelay)
+				if vfx.Parent == nil then vfx.Parent = bodyPart end
+				vfx:Emit(emitCount)
+			end)
+		--end
+	
+	--As of now this case is just for PointLight's. If we need more functionality later I will add
+	else
+		if vfx.Parent == nil then vfx.Parent = bodyPart end
+		vfx.Enabled = true
+	end
+end
+
+
+emitEvent.OnClientEvent:Connect(function(particlePart, spawnPart)
+	
+	local newParticles = particlePart:Clone()
+	print(newParticles.name)
+	local particleAttachment = newParticles:GetChildren()
+	--print(particleAttachment.name)
+	--particleAttachment.Parent = spawnPart
+	--newParticles:Destroy()
+	
+	--if singular particle
+	if newParticles:IsA("ParticleEmitter") == true then
+		--print(newParticles.Name)
+		--print(bodyPart.Name)
+		applyParticles(newParticles, spawnPart)
+	
+	--if multiple
+	else
+		print(particleAttachment.name)
+		for i,p in particleAttachment do
+			p.Parent = spawnPart
+			for i,v in p:GetChildren() do
+				applyParticles(v, spawnPart)
+			end
+		end
+	end
+end)
