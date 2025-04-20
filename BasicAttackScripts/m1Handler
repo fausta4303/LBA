@@ -12,7 +12,7 @@ local runservice = game:GetService("RunService")
 local resetTimeLimit = 1.5
 local slowedTime = 0.8
 --local swingCooldown = 0.6
-local swingCooldown = 15/60 --(20 frames into anim, but 11 frames played up to this point)
+local swingCooldown = 15/60 --(20 frames into anim, but 5 frames played up to this point)
 
 
 local function comboCooldown(char)
@@ -70,15 +70,16 @@ local function resetCombo(char, m1CounterAtActivation)
 	return
 end
 
-local function windUp(char, currentM1, anim, animName)
-	local m1Time = 5/60 --hitbox should get thrown out at 11th frame
+local function windUp(char, currentM1, anim, animName, waitTime)
+	--local m1Time = 5/60 --hitbox should get thrown out at 5th frame
+	local m1Time = waitTime
 	local m1Start = tick()
-	print("START WINDING UP YEAHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+	--print("START WINDING UP YEAHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
 	repeat
-		print(tick() - m1Start)
+		--print(tick() - m1Start)
 		task.wait()
 		if char:GetAttribute("Stun") then
-			print("NAH!!!")
+			--print("NAH!!!")
 			char:SetAttribute("Attacking", false)
 			task.spawn(resetCombo, char, currentM1)
 			task.spawn(startSwingCD, char, currentM1)
@@ -86,8 +87,9 @@ local function windUp(char, currentM1, anim, animName)
 		end
 	until tick() - m1Start >= m1Time
 	
-	print("NOW DO THIS GRAHHHHHHHHHHHHHH")
-	hitBoxModule.CheckAndDamage(char, char.Parent:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+	--print("NOW DO THIS GRAHHHHHHHHHHHHHH")
+	--hitBoxModule.CheckAndDamage(char, char.Parent:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)
+	hitBoxModule.CheckAndDamage(char, char.Parent:GetAttribute("Character"), Vector3.new(7,7,6), 0.1, 0.2)
 
 	task.spawn(applySlow, char)
 	--char:SetAttribute("CanAttack", true)
@@ -140,7 +142,7 @@ local function m1(player)
 	local currentM1 = char:GetAttribute("m1StringCounter")
 	
 	--if on m1Cooldown
-	if char:GetAttribute("m1Cooldown") == true then
+	if not actionsMod.check("attack", char) then
 		--print("NO ON NO")
 		return
 	end
@@ -165,7 +167,7 @@ local function m1(player)
 	currentM1 = char:GetAttribute("m1StringCounter")
 	animsMod.playAnim(char, pmoonCharAnims[currentM1], "currentM1")
 	
-	windUp(char, currentM1, pmoonCharAnims[currentM1], "currentM1")
+	windUp(char, currentM1, pmoonCharAnims[currentM1], "currentM1", pmoonCharData.amtToWait)
 	
 	--[[
 	hitBoxModule.CheckAndDamage(char, player:GetAttribute("Character"), Vector3.new(5,5,5), 0.1, 0.2)

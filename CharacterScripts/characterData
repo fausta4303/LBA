@@ -36,7 +36,29 @@ module.wRyoshuData = {
 			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p3, rs.Animations.M1s.wRyoshuBambi.bambiWm1p4, 
 			   rs.Animations.M1s.wRyoshuBambi.bambiWm1p5},
 	slashMesh = rs.Assets.Mesh.RipSpaceSlash,
-	blockAnim = rs.Animations.Blocks.testBlock
+	blockAnim = rs.Animations.Blocks.testBlock,
+	amtToWait = 5/60
+}
+
+module.wDonData = {
+	shirt = "http://www.roblox.com/asset/?id=14527169621",
+	pants = "http://www.roblox.com/asset/?id=14527174211",
+	color = Color3.fromRGB(229,214,220),
+	accessories = {{15081544353, Vector3.new(1.2,1,1.4), nil, Vector3.new(0,0,-0.1)}, 
+		{109761824405527, nil,nil,nil}, 
+		{18965798593,nil,nil,nil}}, 
+	attributes = {{"Charge",0}},
+	bbGUIs = {ss.Assets.WCorp.chargeBillboard},
+	leftWeapon = {ss.Assets.WCorp.Don.L.Weapon, ss.Assets.WCorp.Don.L.WeaponT1, ss.Assets.WCorp.Don.L.WeaponT2},
+	leftWeaponCFrames = {CFrame.new(0,-0.1,0), CFrame.Angles(0,0,0)},
+	rightWeapon = {ss.Assets.WCorp.Don.R.Weapon, ss.Assets.WCorp.Don.R.WeaponT1, ss.Assets.WCorp.Don.R.WeaponT2},
+	rightWeaponCFrames = {CFrame.new(0,-0.1,0), CFrame.Angles(0,0,0)},
+	m1Anims = {rs.Animations.M1s.wDon.WDon1, rs.Animations.M1s.wDon.wDon2, 
+		rs.Animations.M1s.wDon.wDon3, rs.Animations.M1s.wDon.wDon4, 
+		rs.Animations.M1s.wDon.wDon5},
+	slashMesh = rs.Assets.Mesh.RipSpaceSlash,
+	blockAnim = rs.Animations.Blocks.testBlock,
+	amtToWait = 15/60
 }
 
 module.kurokumoRyoshuData = {
@@ -66,7 +88,8 @@ module.baseHeathcliffData = {
 		rs.Animations.M1s.baseHeathcliff.m1p1, rs.Animations.M1s.baseHeathcliff.m1p1, 
 		rs.Animations.M1s.baseHeathcliff.m1p1},
 	slashMesh = rs.Assets.Mesh.RipSpaceSlash,
-	blockAnim = rs.Animations.Blocks.testBlock
+	blockAnim = rs.Animations.Blocks.testBlock,
+	amtToWait = 5/60
 }
 
 
