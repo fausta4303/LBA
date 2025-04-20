@@ -1,0 +1,11 @@
+local player = game.Players.LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+local event = rs:FindFirstChild("chargeParticleEvent", true)
+
+
+local function onChargeChange ()
+	print("yoooo")
+	event:FireServer(player.Character:GetAttribute("Charge"))
+end
+
+player.Character:GetAttributeChangedSignal("Charge"):Connect(onChargeChange)
